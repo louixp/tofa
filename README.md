@@ -1,5 +1,7 @@
-# tofa
-**To**rch **F**unctional (Linear) **A**lgebra
+# ToFA: Torch Functional (Linear) Algebra 
+ToFA is library to perform functional operations on PyTorch modules. It treats 
+each module as a vector in the weight space (think one big vector of all the 
+weights in the module). 
 
 ## Installation
 
@@ -36,3 +38,9 @@ tm1 + tm2
 ```python
 tm1 @ tm2
 ``` 
+
+### Weight space norm
+
+```python
+tm1.norm()
+```
