@@ -92,3 +92,8 @@ class TofaModule:
             self.state_dict[key].flatten() @ other.state_dict[key].flatten()
             for key in self.state_dict.keys()
         ).item()
+
+    def norm(self):
+        return torch.sqrt(
+            sum(sum(self.state_dict[key] ** 2) for key in self.state_dict.keys())
+        ).item()
