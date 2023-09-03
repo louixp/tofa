@@ -16,22 +16,33 @@ class TofaModule(nn.Sequential):
     def _state_dict(self):
         return self[0].state_dict()
 
-    def _check_elementwise(self, other: "TofaModule") -> None:
+    def _check_elementwise_dims(self, other: "TofaModule") -> None:
         if self._state_dict.keys() != other._state_dict.keys():
             raise ValueError("Incompatible state_dict keys")
         for key in self._state_dict.keys():
             if self._state_dict[key].shape != other._state_dict[key].shape:
                 raise ValueError("Incompatible state_dict shapes")
 
+    def _check_elementwise_type(
+        self, other: Union[int, float, torch.Tensor, "TofaModule"], op_name: str
+    ) -> None:
+        if not isinstance(other, (int, float, torch.Tensor, TofaModule)):
+            raise TypeError(
+                f"Unsupported operand type for {op_name}: {type(self)} and {type(other)}"
+            )
+
     def _elementwise_operator(
-        self, other: Union[int, float, "TofaModule"], op: Callable
+        self, other: Union[int, float, torch.Tensor, "TofaModule"], op: Callable
     ) -> "TofaModule":
         if isinstance(other, (int, float)):
             new_state_dict = {
                 key: op(self._state_dict[key], other) for key in self._state_dict.keys()
             }
+        elif isinstance(other, torch.Tensor):
+            if other.size() != (1,):
+                raise ValueError("Incompatible tensor shape: expected (1,)")
         elif isinstance(other, TofaModule):
-            self._check_elementwise(other)
+            self._check_elementwise_dims(other)
             new_state_dict = {
                 key: op(self._state_dict[key], other._state_dict[key])
                 for key in self._state_dict.keys()
@@ -42,39 +53,32 @@ class TofaModule(nn.Sequential):
         tofa_module = TofaModule(module)
         return tofa_module
 
-    def __add__(self, other: Union[int, float, "TofaModule"]) -> "TofaModule":
-        if not isinstance(other, (int, float, TofaModule)):
-            raise TypeError(
-                f"Unsupported operand type for +: {type(self)} and {type(other)}"
-            )
+    def __add__(
+        self, other: Union[int, float, torch.Tensor, "TofaModule"]
+    ) -> "TofaModule":
+        self._check_elementwise_type(other, "+")
         return self._elementwise_operator(other, lambda x, y: x + y)
 
-    def __sub__(self, other: Union[int, float, "TofaModule"]) -> "TofaModule":
-        if not isinstance(other, (int, float, TofaModule)):
-            raise TypeError(
-                f"Unsupported operand type for -: {type(self)} and {type(other)}"
-            )
+    def __sub__(
+        self, other: Union[int, float, torch.Tensor, "TofaModule"]
+    ) -> "TofaModule":
+        self._check_elementwise_type(other, "-")
         return self._elementwise_operator(other, lambda x, y: x - y)
 
-    def __mul__(self, other: Union[int, float, "TofaModule"]) -> "TofaModule":
-        if not isinstance(other, (int, float, TofaModule)):
-            raise TypeError(
-                f"Unsupported operand type for *: {type(self)} and {type(other)}"
-            )
+    def __mul__(
+        self, other: Union[int, float, torch.Tensor, "TofaModule"]
+    ) -> "TofaModule":
+        self._check_elementwise_type(other, "*")
         return self._elementwise_operator(other, lambda x, y: x * y)
 
-    def __truediv__(self, other: Union[int, float, "TofaModule"]) -> "TofaModule":
-        if not isinstance(other, (int, float, TofaModule)):
-            raise TypeError(
-                f"Unsupported operand type for /: {type(self)} and {type(other)}"
-            )
+    def __truediv__(
+        self, other: Union[int, float, torch.Tensor, "TofaModule"]
+    ) -> "TofaModule":
+        self._check_elementwise_type(other, "/")
         return self._elementwise_operator(other, lambda x, y: x / y)
 
-    def __pow__(self, other: Union[int, float]) -> "TofaModule":
-        if not isinstance(other, (int, float)):
-            raise TypeError(
-                f"Unsupported operand type for **: {type(self)} and {type(other)}"
-            )
+    def __pow__(self, other: Union[int, float, torch.Tensor]) -> "TofaModule":
+        self._check_elementwise_type(other, "**")
         return self._elementwise_operator(other, lambda x, y: x**y)
 
     def __matmul__(self, other: "TofaModule") -> torch.Tensor:
@@ -83,7 +87,7 @@ class TofaModule(nn.Sequential):
                 f"Unsupported operand type for @: {type(self)} and {type(other)}"
             )
 
-        self._check_elementwise(other)
+        self._check_elementwise_dims(other)
         return sum(
             self._state_dict[key].flatten() @ other._state_dict[key].flatten()
             for key in self._state_dict.keys()
