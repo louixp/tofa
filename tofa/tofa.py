@@ -9,13 +9,12 @@ class TofaModule(nn.Sequential):
     def __init__(self, module: nn.Module):
         super().__init__(module)
 
-
     def __repr__(self):
         return f"TofaModule({self[0]})"
 
     @property
     def _state_dict(self):
-      return self[0].state_dict()
+        return self[0].state_dict()
 
     def _check_elementwise(self, other: "TofaModule"):
         if self._state_dict.keys() != other._state_dict.keys():
@@ -92,5 +91,8 @@ class TofaModule(nn.Sequential):
 
     def norm(self):
         return torch.sqrt(
-            sum(sum(self.state_dict[key].flatten() ** 2) for key in self.state_dict.keys())
+            sum(
+                sum(self.state_dict[key].flatten() ** 2)
+                for key in self.state_dict.keys()
+            )
         ).item()
