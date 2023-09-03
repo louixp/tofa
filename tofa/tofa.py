@@ -90,9 +90,4 @@ class TofaModule(nn.Sequential):
         )
 
     def norm(self) -> torch.Tensor:
-        return torch.sqrt(
-            sum(
-                sum(self._state_dict[key].flatten() ** 2)
-                for key in self._state_dict.keys()
-            )
-        )
+        return torch.sqrt(self @ self)
