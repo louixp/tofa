@@ -91,4 +91,4 @@ class TofaModule:
         return sum(
             self.state_dict[key].flatten() @ other.state_dict[key].flatten()
             for key in self.state_dict.keys()
-        )
+        ).item()

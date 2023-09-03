@@ -10,11 +10,13 @@ pip install -e tofa
 
 ## Usage
 
+[Google Colab](https://colab.research.google.com/drive/1SD0HqB4COTIIC8VCxHMeZ9ZEcLazgrjD#scrollTo=7aO8N3ciIRtP)
+
 ### Instantiate a TofaModule
 
 ```python
 from torch import nn
-from tofa import TofaModule
+from tofa.tofa import TofaModule
 
 m1, m2 = nn.Linear(2, 3), nn.Linear(2, 3)
 tm1, tm2 = TofaModule(m1), TofaModule(m2)
