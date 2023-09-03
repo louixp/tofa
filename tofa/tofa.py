@@ -39,7 +39,7 @@ class TofaModule(nn.Sequential):
                 key: op(self._state_dict[key], other) for key in self._state_dict.keys()
             }
         elif isinstance(other, torch.Tensor):
-            if other.size() != (1,):
+            if other.size() != (1,) and other.size() != ():
                 raise ValueError("Incompatible tensor shape: expected (1,)")
         elif isinstance(other, TofaModule):
             self._check_elementwise_dims(other)
