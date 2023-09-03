@@ -95,5 +95,5 @@ class TofaModule:
 
     def norm(self):
         return torch.sqrt(
-            sum(sum(self.state_dict[key] ** 2) for key in self.state_dict.keys())
+            sum(sum(self.state_dict[key].flatten() ** 2) for key in self.state_dict.keys())
         ).item()
